@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: frontend
+  name: frontend
+spec:
+  containers:
+  - image: iscander61/hipster-shop:otus
+    name: frontend
+    resources: {}
+    env:
+    - name: PRODUCT_CATALOG_SERVICE_ADDR
+      value: 127.0.0.1
+    - name: CURRENCY_SERVICE_ADDR
+      value: 127.0.0.1
+    - name: CART_SERVICE_ADDR
+      value: 127.0.0.1
+    - name: RECOMMENDATION_SERVICE_ADDR
+      value: 127.0.0.1
+    - name: CHECKOUT_SERVICE_ADDR
+      value: 127.0.0.1
+    - name: SHIPPING_SERVICE_ADDR
+      value: 127.0.0.1
+    - name: AD_SERVICE_ADDR
+      value: 127.0.0.1
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
