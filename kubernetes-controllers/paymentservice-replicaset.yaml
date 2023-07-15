@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: paymentservice
+  labels:
+    app: paymentservice
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: paymentservice
+  template:
+    metadata:
+      labels:
+        app: paymentservice
+        tier: paymentservice
+    spec:
+      containers:
+      - name: server
+        image: iscander61/paymentservice:v0.0.2
+        ports:
+        - containerPort: 50051
+        env:
+        - name: PORT
+          value: "50051"
+        - name: DISABLE_PROFILER
+          value: "1"
