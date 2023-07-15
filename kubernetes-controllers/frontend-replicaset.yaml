@@ -8,7 +8,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      tier: frontend
+      app: frontend
   template:
     metadata:
       labels:
