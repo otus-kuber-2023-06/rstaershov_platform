@@ -108,3 +108,37 @@ rstaershov Platform repository
   ```
 - Создан новый манифест frontend-pod-healthy.yaml, с указанием отсутствующих выше env.
 - Запущенный с манифеста frontend-pod-healthy.yaml, под frontend находится в статусе Running.
+
+# Механика запуска и взаимодействия контейнеров в Kubernetes // ДЗ №2
+## _1. Подготовка к выполнению ДЗ_
+Выполнена установка [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), с помощью менеджера пакетов [choco](https://community.chocolatey.org/packages/kind):
+```
+choco install kind
+```
+Выполнена установка [Docker Engine](https://docs.docker.com/engine/).
+С помощью указанного в домашнем задании манифеста запущен кластер kind из 3х рабочих нод и 3х март нод:
+```
+kind create cluster --config kind-config.yaml
+```
+## _2. Основная часть домашнего задания_
+### - Работа с replicaSet:
+- Создан манифест микросервиса frontend: frontend-replicaset.yaml. 
+- Выполнена сборка image микросервиса paymentService, полученный image запушен в dockerhub. Создан манифест микросервиса paymentService: paymentservice-replicaset.yaml
+- Выполнены задания по применению, скалированию, обновлению реплик.
+### - Работа с Deployment:
+- На основе paymentservice-replicaset.yaml создан paymentservice-deployment.yaml. 
+- Выполнены задания по применению, обновлению, последовательности обновления под, просмотру истории обновления, откату обновления.
+- Релизованы два сценария развертывания сервиса: paymentservice-deployment-bg.yaml и paymentservice-deployment-reverse.yaml.
+- На примере микросервиса frontend рассмотрели как probes влияют на процесс развертывания и состояния под. Для этого создали манифест на примере приложения frontend: frontend-deployment.yaml.
+## _3. DaemonSet | Задание со  ⭐_ 
+- Создание и применение манифеста сервиса NodeExporter NodeExporter-daemonset.yaml.
+- Проброс порта к сервису на лубой рабочей ноде:
+    ```
+    kubectl port-forward <имя pod в DaemonSet> 9100:9100
+    ```
+- Проверка доступности метрик:
+    ```
+    curl localhost:9100/metrics
+    ```
+## _4. DaemonSet | Задание со  ⭐ ⭐_
+- Используя секцию tolerations дали доступ к запуску под NodeExporter на мастер нодах. После обновления Daemonset, под развернулся на всех 6 нодах.
