@@ -5,7 +5,7 @@ metadata:
   labels:
     app: frontend
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: frontend
@@ -13,7 +13,6 @@ spec:
     metadata:
       labels:
         app: frontend
-        tier: frontend
     spec:
       containers:
       - name: server
