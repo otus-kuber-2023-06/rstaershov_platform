@@ -142,3 +142,28 @@ kind create cluster --config kind-config.yaml
     ```
 ## _4. DaemonSet | Задание со  ⭐ ⭐_
 - Используя секцию tolerations дали доступ к запуску под NodeExporter на мастер нодах. После обновления Daemonset, под развернулся на всех 6 нодах.
+
+# Хранение данных в Kubernetes: Volumes, Storages, Statefull-приложения // ДЗ №4
+## _Подготовка к выполнению домашнего задания._
+```
+kind create cluster
+export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
+```
+## _1. Запуск minio-statefulset_
+- Применили манифест kubectl apply -f https://raw.githubusercontent.com/express42/otus-platform-snippets/master/Module-02/Kuberenetes-volumes/minio-statefulset.yaml
+- Применили headless service: kubectl apply -f https://raw.githubusercontent.com/express42/otus-platform-snippets/master/Module-02/Kuberenetes-volumes/minio-headless-service.yaml
+- Выполнена проверка работы minio:
+    ```
+    kubectl get statefulsets
+    kubectl get pods
+    kubectl get pvc
+    kubectl get pv
+    kubectl describe pod/minio-0
+    ```
+## _2. Запуск minio-statefulset-with-secrets | Задание со  ⭐_ 
+- Создали secrets.yaml для пользователя и пароля minio.
+- Создали и применили манифест с использованием созданного ранее secrets: minio-statefulset-with-secrets.yaml.
+- Создали PersistentVolume "my-pv" 1Gi.
+- Создали PersistentVolumeClaim "my-pvc" 500Mi.
+- Создали Pod "my-pod", использующий "my-pvc" в качестве тома данных. Внутри Pod том примонтирован в директорию "/app/data" в которой создан файл "data.txt".
+- Удалили ранее созданный Pod и создали новый Pod с тем же PVC "my-pvc" и проверили наличие файла "data.txt".
