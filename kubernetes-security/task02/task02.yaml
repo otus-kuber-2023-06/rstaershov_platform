@@ -26,7 +26,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: pods-reader
-  namespace: prometheus
 subjects:
   - kind: Group
     name: system:serviceaccounts:prometheus
