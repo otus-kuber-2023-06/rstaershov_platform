@@ -31,7 +31,7 @@ metadata:
   namespace: dev
   name: dev-viewer
 rules:
-- apiGroups: [""]
+- apiGroups: ["*"]
   resources: ["*"]
   verbs: ["get", "watch", "list"]
 ---
