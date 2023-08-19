@@ -167,3 +167,40 @@ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
 - Создали PersistentVolumeClaim "my-pvc" 500Mi.
 - Создали Pod "my-pod", использующий "my-pvc" в качестве тома данных. Внутри Pod том примонтирован в директорию "/app/data" в которой создан файл "data.txt".
 - Удалили ранее созданный Pod и создали новый Pod с тем же PVC "my-pvc" и проверили наличие файла "data.txt".
+# Шаблонизация манифестов. Helm и его аналоги (Jsonnet, Kustomize) // ДЗ №6
+ 
+ ## _Подготовка к выполнению ДЗ_
+ - В [YC](https://cloud.yandex.ru/docs/managed-kubernetes/) выполнен запуск кластера kubernetes.
+ - Выполнена установка [nginx-ingress](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/) по документации.
+ - Выполнена установка [cert-manager](https://artifacthub.io/packages/helm/cert-manager/cert-manager).
+   - создан ClusterIssuer.
+ ## _1. Установка chartmuseum_
+ Выполнена кастомная установка [chartmuseum](https://artifacthub.io/packages/helm/chartmuseum/chartmuseum).
+ ```
+ helm upgrade --install chartmuseum stable/chartmuseum --wait \
+ --namespace=chartmuseum \
+ --version=3.10.1 \
+ -f kubernetes-templating/chartmuseum/values.yaml
+ ```
+ Создан ingress с автоматической генерацией сертификата LE, https://chartmuseum.158-160-42-144.nip.io/.
+ ## chartmuseum | Задание со ⭐
+Работа с chartmuseum выполняется через взаимодействие с его API.
+Для работы с helm-push, необходимо добавить репозиторий: helm repo add chartmuseum http://<host репозитория>:8080
+- Для загрузки helm package в репозиторий, необходимо выполнить POST запрос к эндпоинту /api/charts. Или установить и использовать [helm-push](https://github.com/chartmuseum/helm-push)
+  -  curl --data-binary "@mychart-0.1.0.tgz" http://localhost:8080/api/charts
+  -  helm cm-push mychart-0.3.2.tgz chartmuseum
+- Для удаление helm package из репозитория, DELETE на эндпоинт /api/charts/<name>/<version>.
+- Для получения списка helm package в репозитории, GET на эндпоинт /api/charts.
+Более подробная информация доступна [git репозитории](https://github.com/helm/chartmuseum).
+## _2. Установка Harbor_
+Выполнена кастомная установка [harbor](https://artifacthub.io/packages/helm/harbor/harbor) с автоматической генерацией сетификата LE, https://harbor.158-160-42-144.nip.io/.
+```
+helm install harbor -f values.yaml harbor/harbor -n harbor --create-namespace
+```
+В репозиторий добавлены пакеты:
+- helm push helm/hipster-shop oci://harbor.158-160-42-144.nip.io/helm
+- helm push helm/frontend oci://harbor.158-160-42-144.nip.io/helm
+## _3. Создаем свой helm chart_
+Выполнена установка приложения из helm chart hipster-shop с зависимостями: front.
+## Создаем свой helm chart | Задание со ⭐
+Выполнена установка redis, зависимостью hipster-shop.

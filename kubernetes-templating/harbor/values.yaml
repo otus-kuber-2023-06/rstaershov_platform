@@ -1,0 +1,16 @@
+expose:
+  tls:
+    certSource: secret
+    secret:
+      secretName: "harbor.158-160-42-144.nip.io"
+  ingress:
+    hosts:
+      core: harbor.158-160-42-144.nip.io
+    className: "nginx"
+    annotations:
+      cert-manager.io/acme-challenge-type: http01
+      cert-manager.io/cluster-issuer: letsencrypt-staging
+      kubernetes.io/tls-acme: "true"
+externalURL: https://harbor.158-160-42-144.nip.io
+notary:
+  enabled: false
