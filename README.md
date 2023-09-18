@@ -167,6 +167,11 @@ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
 - Создали PersistentVolumeClaim "my-pvc" 500Mi.
 - Создали Pod "my-pod", использующий "my-pvc" в качестве тома данных. Внутри Pod том примонтирован в директорию "/app/data" в которой создан файл "data.txt".
 - Удалили ранее созданный Pod и создали новый Pod с тем же PVC "my-pvc" и проверили наличие файла "data.txt".
+
+# Безопасность и управление доступом // ДЗ №5
+
+ В рамках ДЗ изучено создание: namespace, ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding. И биндинг созданных ролей с разными правами к аккаунтам.
+
 # Шаблонизация манифестов. Helm и его аналоги (Jsonnet, Kustomize) // ДЗ №6
  
  ## _Подготовка к выполнению ДЗ_
