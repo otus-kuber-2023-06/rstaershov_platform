@@ -167,6 +167,11 @@ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
 - Создали PersistentVolumeClaim "my-pvc" 500Mi.
 - Создали Pod "my-pod", использующий "my-pvc" в качестве тома данных. Внутри Pod том примонтирован в директорию "/app/data" в которой создан файл "data.txt".
 - Удалили ранее созданный Pod и создали новый Pod с тем же PVC "my-pvc" и проверили наличие файла "data.txt".
+
+# Безопасность и управление доступом // ДЗ №5
+
+ В рамках ДЗ изучено создание: namespace, ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding. И биндинг созданных ролей с разными правами к аккаунтам.
+
 # Шаблонизация манифестов. Helm и его аналоги (Jsonnet, Kustomize) // ДЗ №6
  
  ## _Подготовка к выполнению ДЗ_
@@ -204,3 +209,18 @@ helm install harbor -f values.yaml harbor/harbor -n harbor --create-namespace
 Выполнена установка приложения из helm chart hipster-shop с зависимостями: front.
 ## Создаем свой helm chart | Задание со ⭐
 Выполнена установка redis, зависимостью hipster-shop.
+
+# Custom Resource Definitions. Operators // ДЗ №7
+- Написали CustomResource и CustomResourceDefinition для mysql оператора;
+- Написали mysql оператора с помощью python KOPF;
+- Создали в mysql таблицу test, и добавили в нее 2 записи, после чего выполнили удаление инстанста mysql;
+- Проверили выполнение backup-mysql-instance-job;
+- Создали CustomResource и проверили, что содержимое таблицы восстановилось с помощью restore-mysql-instance-job.
+- Выполнили build образа iscander61/mysql-operator:v002 и сделали push в registry dockerhub;
+- В директории kubernetes-operator/deploy/ создали ServiceAccount, ClusterRole, ClusterRoleBinding и Deployment для mysql-operator;
+- Применили созданные в директории kubernetes-operator/deploy/ манифесты, и проверили аналогично описанным выше шагам проверили работоспособность mysql-operator;
+- ```
+  $ kubectl get jobs
+    NAME                         COMPLETIONS   DURATION   AGE
+    backup-mysql-instance-job    1/1           5s         14m
+    restore-mysql-instance-job   1/1           3m22s      16m
