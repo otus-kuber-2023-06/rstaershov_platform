@@ -1,0 +1,9 @@
+dependencies:
+- name: frontend
+  repository: file://../frontend
+  version: 0.1.0
+- name: frontend
+  repository: file://../redis
+  version: 0.1.0
+digest: sha256:b8712701906b22080f408a02cb170ce7184e22ccb5c2ebae1763025a04807749
+generated: "2023-08-19T17:13:00.6876807+03:00"

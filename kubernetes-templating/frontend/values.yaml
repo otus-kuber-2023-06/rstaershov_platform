@@ -1,0 +1,11 @@
+image:
+  img: gcr.io/google-samples/microservices-demo/frontend
+  tag: v0.1.3
+containerPort:
+  port: 8080
+replicas: 1
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  NodePort: 30001
