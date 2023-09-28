@@ -224,3 +224,14 @@ helm install harbor -f values.yaml harbor/harbor -n harbor --create-namespace
     NAME                         COMPLETIONS   DURATION   AGE
     backup-mysql-instance-job    1/1           5s         14m
     restore-mysql-instance-job   1/1           3m22s      16m
+
+# Мониторинг компонентов кластера и приложений, работающих в нем // ДЗ №8
+- Выполнена установка prometheus-operator;
+- Создан Deployment 3-х реплик nginx;
+- Создан Configmap с конфигом для nginx;
+- Создан сервис для подов nginx;
+- Создали CRD ServiceMonitor;
+- Развернули Prometheus:
+    - создали ServiceAccount, ClusterRole, ClusterRoleBinding и Prometheus;
+- Добавили в Deployment nginx Sidecar nginx-exporter и применили его;
+- Открыли доступ к Prometheus с помощью сервиса nodePort.
