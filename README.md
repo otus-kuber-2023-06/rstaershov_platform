@@ -143,6 +143,81 @@ kind create cluster --config kind-config.yaml
 ## _4. DaemonSet | Задание со  ⭐ ⭐_
 - Используя секцию tolerations дали доступ к запуску под NodeExporter на мастер нодах. После обновления Daemonset, под развернулся на всех 6 нодах.
 
+# Сетевая подсистема Kubernetes // ДЗ #3
+## _Выполнение проверок Pod_
+- В манифест пода из прошлой ДЗ добавили описание readinessProbe и livenessProbe, выполнили запуск пода.
+- Вопрос для самопроверки: проверка наличия процесса не гарантирует корректность работы самого процесса, такая проверка имеет смысл, если наличие процесса гарантирует корректность его работы.
+## _Создание Deployment_
+- Создали Deployment и по практиковались с RollingUpdate, меняя значения maxUnavailable и maxSurge (оба 0, оба 100%, 0 и 100%).
+## _Создание Service_
+- Создали Service типа ClusterIP, ознакомились и включили IPVS, проверили цепочки правила iptables.
+## _Установка MetalLB_
+- Выполнили установку MetalLB из манифеста и согласно [документации](https://metallb.universe.tf/installation/)
+    ```
+    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+    	kubectl --namespace metallb-system get all
+    	kubectl --namespace metallb-system get all
+    		NAME                              READY   STATUS    RESTARTS   AGE
+    		pod/controller-5fd797fbf7-cvlrf   1/1     Running   0          39s
+    		pod/speaker-zp6cq                 1/1     Running   0          39s
+    
+    		NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+    		service/webhook-service   ClusterIP   10.100.218.185   <none>        443/TCP   39s
+    
+    		NAME                     DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+    		daemonset.apps/speaker   1         1         1       1            1           kubernetes.io/os=linux   39s
+    
+    		NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+    		deployment.apps/controller   1/1     1            1           39s
+    
+    		NAME                                    DESIRED   CURRENT   READY   AGE
+    		replicaset.apps/controller-5fd797fbf7   1         1         1       39s
+    ```
+- На основе созданного ранее сервиса, создали и применили сервис типа LoadBalancer
+    ```
+    kubectl describe svc web-svc-lb
+    		Name:                     web-svc-lb
+    		Namespace:                default
+    		Labels:                   <none>
+    		Annotations:              metallb.universe.tf/ip-allocated-from-pool: first-pool
+    		Selector:                 app=web
+    		Type:                     LoadBalancer
+    		IP Family Policy:         SingleStack
+    		IP Families:              IPv4
+    		IP:                       10.107.115.52
+    		IPs:                      10.107.115.52
+    		LoadBalancer Ingress:     172.17.255.1
+    		Port:                     <unset>  80/TCP
+    		TargetPort:               8000/TCP
+    		NodePort:                 <unset>  31767/TCP
+    		Endpoints:                10.244.0.3:8000,10.244.0.4:8000,10.244.0.5:8000
+    		Session Affinity:         None
+    		External Traffic Policy:  Cluster
+    		Events:
+    		  Type    Reason       Age   From                Message
+    		  ----    ------       ----  ----                -------
+    		  Normal  IPAllocated  3m6s  metallb-controller  Assigned IP ["172.17.255.1"]
+    ```
+- Сделали роут с нашей локальной машины к IP адрес Minikube  и проверили доступность сервиса по данному маршруту.
+    ```
+    route add 172.17.255.0/24 172.25.234.111
+    ```
+## _Задание со  ⭐_  | DNS через MetalLB
+- Создали сервисы для DNS типа LoadBalancer.
+```
+nslookup kubernetes.default.svc.cluster.local. 172.17.255.10
+		Server:  dns-service-tcp.kube-system.svc.cluster.local
+		Address:  172.17.255.10
+
+		Name:    kubernetes.default.svc.cluster.local
+		Address:  10.96.0.1
+```
+## _Создание Ingress_
+- Установили в minikube ingress-nginx: minikube addons enable ingress
+- Создали и применили сервис типа LoadBalancer и проверили доступность nginx.
+- Создали и применили headless сервис для приложения из ранее примененного деплоймента.
+- Создали и применили манифест Ingress для этого сервиса и проверили доступность сервиса web через Ingress.
+
 # Хранение данных в Kubernetes: Volumes, Storages, Statefull-приложения // ДЗ №4
 ## _Подготовка к выполнению домашнего задания._
 ```
@@ -167,3 +242,71 @@ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
 - Создали PersistentVolumeClaim "my-pvc" 500Mi.
 - Создали Pod "my-pod", использующий "my-pvc" в качестве тома данных. Внутри Pod том примонтирован в директорию "/app/data" в которой создан файл "data.txt".
 - Удалили ранее созданный Pod и создали новый Pod с тем же PVC "my-pvc" и проверили наличие файла "data.txt".
+
+# Безопасность и управление доступом // ДЗ №5
+
+ В рамках ДЗ изучено создание: namespace, ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding. И биндинг созданных ролей с разными правами к аккаунтам.
+
+# Шаблонизация манифестов. Helm и его аналоги (Jsonnet, Kustomize) // ДЗ №6
+ 
+ ## _Подготовка к выполнению ДЗ_
+ - В [YC](https://cloud.yandex.ru/docs/managed-kubernetes/) выполнен запуск кластера kubernetes.
+ - Выполнена установка [nginx-ingress](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/) по документации.
+ - Выполнена установка [cert-manager](https://artifacthub.io/packages/helm/cert-manager/cert-manager).
+   - создан ClusterIssuer.
+ ## _1. Установка chartmuseum_
+ Выполнена кастомная установка [chartmuseum](https://artifacthub.io/packages/helm/chartmuseum/chartmuseum).
+ ```
+ helm upgrade --install chartmuseum stable/chartmuseum --wait \
+ --namespace=chartmuseum \
+ --version=3.10.1 \
+ -f kubernetes-templating/chartmuseum/values.yaml
+ ```
+ Создан ingress с автоматической генерацией сертификата LE, https://chartmuseum.158-160-42-144.nip.io/.
+ ## chartmuseum | Задание со ⭐
+Работа с chartmuseum выполняется через взаимодействие с его API.
+Для работы с helm-push, необходимо добавить репозиторий: helm repo add chartmuseum http://<host репозитория>:8080
+- Для загрузки helm package в репозиторий, необходимо выполнить POST запрос к эндпоинту /api/charts. Или установить и использовать [helm-push](https://github.com/chartmuseum/helm-push)
+  -  curl --data-binary "@mychart-0.1.0.tgz" http://localhost:8080/api/charts
+  -  helm cm-push mychart-0.3.2.tgz chartmuseum
+- Для удаление helm package из репозитория, DELETE на эндпоинт /api/charts/<name>/<version>.
+- Для получения списка helm package в репозитории, GET на эндпоинт /api/charts.
+Более подробная информация доступна [git репозитории](https://github.com/helm/chartmuseum).
+## _2. Установка Harbor_
+Выполнена кастомная установка [harbor](https://artifacthub.io/packages/helm/harbor/harbor) с автоматической генерацией сетификата LE, https://harbor.158-160-42-144.nip.io/.
+```
+helm install harbor -f values.yaml harbor/harbor -n harbor --create-namespace
+```
+В репозиторий добавлены пакеты:
+- helm push helm/hipster-shop oci://harbor.158-160-42-144.nip.io/helm
+- helm push helm/frontend oci://harbor.158-160-42-144.nip.io/helm
+## _3. Создаем свой helm chart_
+Выполнена установка приложения из helm chart hipster-shop с зависимостями: front.
+## Создаем свой helm chart | Задание со ⭐
+Выполнена установка redis, зависимостью hipster-shop.
+
+# Custom Resource Definitions. Operators // ДЗ №7
+- Написали CustomResource и CustomResourceDefinition для mysql оператора;
+- Написали mysql оператора с помощью python KOPF;
+- Создали в mysql таблицу test, и добавили в нее 2 записи, после чего выполнили удаление инстанста mysql;
+- Проверили выполнение backup-mysql-instance-job;
+- Создали CustomResource и проверили, что содержимое таблицы восстановилось с помощью restore-mysql-instance-job.
+- Выполнили build образа iscander61/mysql-operator:v002 и сделали push в registry dockerhub;
+- В директории kubernetes-operator/deploy/ создали ServiceAccount, ClusterRole, ClusterRoleBinding и Deployment для mysql-operator;
+- Применили созданные в директории kubernetes-operator/deploy/ манифесты, и проверили аналогично описанным выше шагам проверили работоспособность mysql-operator;
+- ```
+  $ kubectl get jobs
+    NAME                         COMPLETIONS   DURATION   AGE
+    backup-mysql-instance-job    1/1           5s         14m
+    restore-mysql-instance-job   1/1           3m22s      16m
+
+# Мониторинг компонентов кластера и приложений, работающих в нем // ДЗ №8
+- Выполнена установка prometheus-operator;
+- Создан Deployment 3-х реплик nginx;
+- Создан Configmap с конфигом для nginx;
+- Создан сервис для подов nginx;
+- Создали CRD ServiceMonitor;
+- Развернули Prometheus:
+    - создали ServiceAccount, ClusterRole, ClusterRoleBinding и Prometheus;
+- Добавили в Deployment nginx Sidecar nginx-exporter и применили его;
+- Открыли доступ к Prometheus с помощью сервиса nodePort.
