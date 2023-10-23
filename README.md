@@ -143,6 +143,81 @@ kind create cluster --config kind-config.yaml
 ## _4. DaemonSet | Задание со  ⭐ ⭐_
 - Используя секцию tolerations дали доступ к запуску под NodeExporter на мастер нодах. После обновления Daemonset, под развернулся на всех 6 нодах.
 
+# Сетевая подсистема Kubernetes // ДЗ #3
+## _Выполнение проверок Pod_
+- В манифест пода из прошлой ДЗ добавили описание readinessProbe и livenessProbe, выполнили запуск пода.
+- Вопрос для самопроверки: проверка наличия процесса не гарантирует корректность работы самого процесса, такая проверка имеет смысл, если наличие процесса гарантирует корректность его работы.
+## _Создание Deployment_
+- Создали Deployment и по практиковались с RollingUpdate, меняя значения maxUnavailable и maxSurge (оба 0, оба 100%, 0 и 100%).
+## _Создание Service_
+- Создали Service типа ClusterIP, ознакомились и включили IPVS, проверили цепочки правила iptables.
+## _Установка MetalLB_
+- Выполнили установку MetalLB из манифеста и согласно [документации](https://metallb.universe.tf/installation/)
+    ```
+    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+    	kubectl --namespace metallb-system get all
+    	kubectl --namespace metallb-system get all
+    		NAME                              READY   STATUS    RESTARTS   AGE
+    		pod/controller-5fd797fbf7-cvlrf   1/1     Running   0          39s
+    		pod/speaker-zp6cq                 1/1     Running   0          39s
+    
+    		NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+    		service/webhook-service   ClusterIP   10.100.218.185   <none>        443/TCP   39s
+    
+    		NAME                     DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+    		daemonset.apps/speaker   1         1         1       1            1           kubernetes.io/os=linux   39s
+    
+    		NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+    		deployment.apps/controller   1/1     1            1           39s
+    
+    		NAME                                    DESIRED   CURRENT   READY   AGE
+    		replicaset.apps/controller-5fd797fbf7   1         1         1       39s
+    ```
+- На основе созданного ранее сервиса, создали и применили сервис типа LoadBalancer
+    ```
+    kubectl describe svc web-svc-lb
+    		Name:                     web-svc-lb
+    		Namespace:                default
+    		Labels:                   <none>
+    		Annotations:              metallb.universe.tf/ip-allocated-from-pool: first-pool
+    		Selector:                 app=web
+    		Type:                     LoadBalancer
+    		IP Family Policy:         SingleStack
+    		IP Families:              IPv4
+    		IP:                       10.107.115.52
+    		IPs:                      10.107.115.52
+    		LoadBalancer Ingress:     172.17.255.1
+    		Port:                     <unset>  80/TCP
+    		TargetPort:               8000/TCP
+    		NodePort:                 <unset>  31767/TCP
+    		Endpoints:                10.244.0.3:8000,10.244.0.4:8000,10.244.0.5:8000
+    		Session Affinity:         None
+    		External Traffic Policy:  Cluster
+    		Events:
+    		  Type    Reason       Age   From                Message
+    		  ----    ------       ----  ----                -------
+    		  Normal  IPAllocated  3m6s  metallb-controller  Assigned IP ["172.17.255.1"]
+    ```
+- Сделали роут с нашей локальной машины к IP адрес Minikube  и проверили доступность сервиса по данному маршруту.
+    ```
+    route add 172.17.255.0/24 172.25.234.111
+    ```
+## _Задание со  ⭐_  | DNS через MetalLB
+- Создали сервисы для DNS типа LoadBalancer.
+```
+nslookup kubernetes.default.svc.cluster.local. 172.17.255.10
+		Server:  dns-service-tcp.kube-system.svc.cluster.local
+		Address:  172.17.255.10
+
+		Name:    kubernetes.default.svc.cluster.local
+		Address:  10.96.0.1
+```
+## _Создание Ingress_
+- Установили в minikube ingress-nginx: minikube addons enable ingress
+- Создали и применили сервис типа LoadBalancer и проверили доступность nginx.
+- Создали и применили headless сервис для приложения из ранее примененного деплоймента.
+- Создали и применили манифест Ingress для этого сервиса и проверили доступность сервиса web через Ingress.
+
 # Хранение данных в Kubernetes: Volumes, Storages, Statefull-приложения // ДЗ №4
 ## _Подготовка к выполнению домашнего задания._
 ```
